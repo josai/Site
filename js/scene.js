@@ -1,4 +1,7 @@
-import * as THREE from './node_modules/three/build/three.module.js'
+
+
+// orbit controls for testing/viewing
+
 
 function loadMeshes () {
   const meshes = [testCube()]
@@ -8,7 +11,7 @@ function loadLights () {
   const lights = []
 
   const color = 0xFFFFFF
-  const intensity = 10
+  const intensity = 100
   const lightOne = new THREE.DirectionalLight(color, intensity)
   lightOne.position.set(0, 0, 10)
   lightOne.castShadow = true
@@ -42,23 +45,48 @@ function buildCamera () {
   return camera
 };
 function buildRenderer () {
-  const renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true })
+  const canvas1 = document.getElementById("renderwindow");
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas1, preserveDrawingBuffer: true })
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.shadowMap.enabled = true
 
   return renderer
 };
-function animate (renderer, scene, camera) {
-  requestAnimationFrame(animate)
-  renderer.render(scene, camera)
-}
+
 function main () {
+
   const sceneObjects = [].concat(loadMeshes(), loadLights())
   const scene = init(sceneObjects)
+
+  const loader = new THREE.GLTFLoader();
+  loader.load( 'models/monkey.glb', function ( gltf ) {
+
+  	scene.add( gltf.scene );
+
+  }, undefined, function ( error ) {
+
+  	console.error( error );
+
+  } );
+
+
   const cam = buildCamera()
   const renderer = buildRenderer()
-  animate(renderer, scene, cam)
+
+  const controls = new THREE.OrbitControls( cam, renderer.domElement );
+
+
+
+  const animate = function () {
+      requestAnimationFrame(animate)
+      renderer.render(scene, cam)
+  };
+  animate()
+
 };
+
+
+
 
 main()
 console.log('done')
