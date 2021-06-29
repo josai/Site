@@ -4,17 +4,40 @@
 
 
 function loadMeshes () {
-  const meshes = [testCube()]
+  const meshes = [testCube()];
+  console.log(meshes)
   return meshes
 };
+function getGLTFObjects(scene) {
+  const loader = new THREE.GLTFLoader();
+  let loadedObjects = [];
+  let myObjects = ['models/villager.glb', 'models/platform.glb'];
+  for (let i = 0; i < myObjects.length; i++) {
+    loader.load( myObjects[i], function ( gltf ) {
+      gltf.scene.traverse( function ( object ) {
+       if ( object.isMesh ) {
+           object.castShadow = true;
+           object.receiveShadow = true;
+           }
+       } );
+    	scene.add( gltf.scene );
+    }, undefined, function ( error ) {
+    	console.error( error );
+    } );
+  }
+
+  return loadedObjects;
+}
 function loadLights () {
   const lights = []
 
   const color = 0xFFFFFF
-  const intensity = 100
+  const intensity = 6
   const lightOne = new THREE.DirectionalLight(color, intensity)
-  lightOne.position.set(0, 0, 10)
-  lightOne.castShadow = true
+  lightOne.position.set(2, 4, 1)
+  lightOne.rotation.set(5, -40, 0)
+  lightOne.castShadow = true;
+
 
   lights.push(lightOne)
   return lights
@@ -23,8 +46,10 @@ function init (objects) {
   // Scene setup
   const scene = new THREE.Scene()
   for (let i = 0; i < objects.length; i++) {
+    console.log(objects[i])
     scene.add(objects[i])
   }
+  getGLTFObjects(scene)
   return scene
 };
 function testCube () {
@@ -46,9 +71,9 @@ function buildCamera () {
 };
 function buildRenderer () {
   const canvas1 = document.getElementById("renderwindow");
-  const renderer = new THREE.WebGLRenderer({ canvas: canvas1, preserveDrawingBuffer: true })
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas1, preserveDrawingBuffer: true,  antialiasing:true})
   renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.shadowMap.enabled = true
+  renderer.shadowMap.enabled = true;
 
   return renderer
 };
@@ -58,17 +83,14 @@ function main () {
   const sceneObjects = [].concat(loadMeshes(), loadLights())
   const scene = init(sceneObjects)
 
-  const loader = new THREE.GLTFLoader();
-  loader.load( 'models/monkey.glb', function ( gltf ) {
-
-  	scene.add( gltf.scene );
-
-  }, undefined, function ( error ) {
-
-  	console.error( error );
-
-  } );
-
+  //Load background texture
+  const texloader = new THREE.TextureLoader();
+  texloader.load('models/background.jpg' , function(texture)
+              {
+                const rt = new THREE.WebGLCubeRenderTarget(texture.image.height);
+                rt.fromEquirectangularTexture(renderer, texture);
+                scene.background = rt.texture;
+              });
 
   const cam = buildCamera()
   const renderer = buildRenderer()
