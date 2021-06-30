@@ -1,5 +1,3 @@
-
-
 // orbit controls for testing/viewing
 
 
@@ -11,7 +9,7 @@ function loadMeshes () {
 function getGLTFObjects(scene) {
   const loader = new THREE.GLTFLoader();
   let loadedObjects = [];
-  let myObjects = ['models/villager.glb', 'models/platform.glb'];
+  let myObjects = ['models/villager.glb', 'models/platform.glb', 'models/stump.glb', 'models/tree.glb'];
   for (let i = 0; i < myObjects.length; i++) {
     loader.load( myObjects[i], function ( gltf ) {
       gltf.scene.traverse( function ( object ) {
@@ -35,7 +33,7 @@ function loadLights () {
   const intensity = 6
   const lightOne = new THREE.DirectionalLight(color, intensity)
   lightOne.position.set(2, 4, 1)
-  lightOne.rotation.set(5, -40, 0)
+  lightOne.rotation.set(5, 60, 0)
   lightOne.castShadow = true;
 
 
@@ -75,6 +73,7 @@ function buildRenderer () {
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.shadowMap.enabled = true;
 
+
   return renderer
 };
 
@@ -95,13 +94,40 @@ function main () {
   const cam = buildCamera()
   const renderer = buildRenderer()
 
+
+
+  const dofPass = new POSTPROCESSING.EffectPass(cam,
+    new POSTPROCESSING.RealisticBokehEffect(
+    {"focus":0.015, "fstop":1.2, "maxBlur":2, "focalLength":0.75, "luminanceThreshold":4, "luminanceGain":0.005, "fringe":2.2}));
+  dofPass.renderToScreen = true;
+  console.log(dofPass['effects'][0]['uniforms']);
+
+  const bloomPass = new POSTPROCESSING.EffectPass(cam, new POSTPROCESSING.BloomEffect());
+  bloomPass.renderToScreen = true;
+  console.log(bloomPass['effects'][0]['uniforms']);
+
+  const composer = new POSTPROCESSING.EffectComposer(renderer);
+  composer.addPass(new POSTPROCESSING.RenderPass(scene, cam));
+  composer.addPass(dofPass);
+
+
+
+
+
+
+
+
+
+
+
+
   const controls = new THREE.OrbitControls( cam, renderer.domElement );
 
 
 
   const animate = function () {
       requestAnimationFrame(animate)
-      renderer.render(scene, cam)
+      composer.render(scene, cam)
   };
   animate()
 
