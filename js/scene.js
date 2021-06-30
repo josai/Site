@@ -14,6 +14,7 @@ function getGLTFObjects(scene) {
     loader.load( myObjects[i], function ( gltf ) {
       gltf.scene.traverse( function ( object ) {
        if ( object.isMesh ) {
+           console.log(myObjects[i]);
            object.castShadow = true;
            object.receiveShadow = true;
            }
@@ -30,14 +31,26 @@ function loadLights () {
   const lights = []
 
   const color = 0xFFFFFF
-  const intensity = 6
-  const lightOne = new THREE.DirectionalLight(color, intensity)
-  lightOne.position.set(2, 4, 1)
-  lightOne.rotation.set(5, 60, 0)
-  lightOne.castShadow = true;
+  const intensity = 4
+  const light = new THREE.DirectionalLight(color, intensity)
+  light.position.set(50, 500, 22);
+  light.target.position.set(10, 10, 10);
+  light.shadow.camera.near = 0.5;
+  light.shadow.camera.far = 10000;
+  light.shadow.camera.left = -500;
+  light.shadow.camera.bottom = -500;
+  light.shadow.camera.right = 500;
+  light.shadow.camera.top = 500;
+  light.shadow.bias = -0.01;
+
+  light.castShadow = true;
+  light.shadow.radius = 6;
+  console.log(light.shadow.camera);
 
 
-  lights.push(lightOne)
+
+  lights.push(light);
+  lights.push(new THREE.AmbientLight(0xFFFFFF, intensity / 4));
   return lights
 };
 function init (objects) {
@@ -77,6 +90,21 @@ function buildRenderer () {
   return renderer
 };
 
+function buildComposer(renderer, scene, cam) {
+  const composer = new POSTPROCESSING.EffectComposer( renderer );
+  const renderPass = new POSTPROCESSING.RenderPass( scene, cam);
+  let vignette = new POSTPROCESSING.VignetteEffect();
+  let bloom = new POSTPROCESSING.BloomEffect({"intensity":2});
+
+  let dof = new POSTPROCESSING.DepthOfFieldEffect(cam, {focusDistance: 0.02, focalLength: 0.058, bokehScale: 3.0});
+
+  const effectPass = new POSTPROCESSING.EffectPass(cam, dof, bloom, vignette,);
+  effectPass.renderToScreen = true;
+  composer.addPass( renderPass );
+  composer.addPass(effectPass);
+  return composer
+}
+
 function main () {
 
   const sceneObjects = [].concat(loadMeshes(), loadLights())
@@ -93,36 +121,10 @@ function main () {
 
   const cam = buildCamera()
   const renderer = buildRenderer()
+  renderer.shadowMap.enabled = true;
 
-
-
-  const dofPass = new POSTPROCESSING.EffectPass(cam,
-    new POSTPROCESSING.RealisticBokehEffect(
-    {"focus":0.015, "fstop":1.2, "maxBlur":2, "focalLength":0.75, "luminanceThreshold":4, "luminanceGain":0.005, "fringe":2.2}));
-  dofPass.renderToScreen = true;
-  console.log(dofPass['effects'][0]['uniforms']);
-
-  const bloomPass = new POSTPROCESSING.EffectPass(cam, new POSTPROCESSING.BloomEffect());
-  bloomPass.renderToScreen = true;
-  console.log(bloomPass['effects'][0]['uniforms']);
-
-  const composer = new POSTPROCESSING.EffectComposer(renderer);
-  composer.addPass(new POSTPROCESSING.RenderPass(scene, cam));
-  composer.addPass(dofPass);
-
-
-
-
-
-
-
-
-
-
-
-
+  const composer = buildComposer(renderer, scene, cam);
   const controls = new THREE.OrbitControls( cam, renderer.domElement );
-
 
 
   const animate = function () {
