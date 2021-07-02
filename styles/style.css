@@ -1,0 +1,42 @@
+@font-face {
+  font-family: titleFont;
+  src: url("fonts/OPTIEngeEtienne.otf");
+}
+@font-face {
+  font-family: dialogFont;
+  src: url("fonts/PixelEmulator-xq08.ttf");
+}
+
+#titleText {
+  width: 600px;
+  margin:5%;
+  opacity: 90%;
+  position:absolute;
+  font-family: titleFont;
+  font-size: 120px;
+  text-shadow: 1px 1px 15px white;
+  letter-spacing: 8px;
+  text-decoration: underline;
+}
+
+#dialogBox {
+  border-radius: 12px;
+  box-shadow: 6px 6px black;
+  height: 20%;
+  border: 6px solid #efefef;
+  background-color:#293658;
+  width: 80%;
+  bottom: 0;
+  font-family: dialogFont;;
+  position:absolute;
+  text-shadow: 4px 4px 1px black;
+  font-size: 24px;
+  color: white;
+  margin-left:10%;
+  margin-bottom:2%;
+}
+#dialogText {
+  margin-left:2.5%;
+  margin-right:0.5%;
+
+}
