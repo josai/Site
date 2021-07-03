@@ -93,37 +93,47 @@ function testCube () {
   cube.name = 'testcube';
   return cube
 };
-function characterController(character) {
 
-  let keysPressed = {};
-
-  document.addEventListener('keydown', (event) => {
-   keysPressed[event.key] = true;
-  });
-  document.addEventListener('keyup', (event) => {
-    keysPressed[event.key] = false;
-  });
-  return keysPressed;
-};
-
-function move(key, character){
-  var moveSpeed = 0.24;
-  if (key == 'w') {
-           character.translateZ( moveSpeed );
-       }
-      if (key == 's') {
-           character.translateZ( -moveSpeed);
-       }
-       if (key == 'a') {
-           character.rotation.y += moveSpeed;
-       }
-       if (key == 'd') {
-           character.rotation.y -= moveSpeed;
-       }
-       if (key == 32) {
-           character.position.set(0, 0, 0);
-       }
+class Controller {
+  // A controller for a character. Handles listening and exucution of user input
+  constructor(character) {
+    this.character = character;
+    this.moveSpeed = 0.24;
+    this.keysPressed = {};
+    document.addEventListener('keydown', (event) => {
+     this.keysPressed[event.key] = true;
+    });
+    document.addEventListener('keyup', (event) => {
+      this.keysPressed[event.key] = false;
+    });
+  }
+  update () {
+    for (const [key, value] of Object.entries(this.keysPressed)) {
+      if (value === true) {
+        console.log(key, value);
+        this.move(key)
+      }
+    }
+  }
+  move(key) {
+    if (key == 'w') {
+             this.character.translateZ( this.moveSpeed );
+         }
+        if (key == 's') {
+             this.character.translateZ( -this.moveSpeed);
+         }
+         if (key == 'a') {
+             this.character.rotation.y += this.moveSpeed;
+         }
+         if (key == 'd') {
+             this.character.rotation.y -= this.moveSpeed;
+         }
+         if (key == 32) {
+             this.character.position.set(0, 0, 0);
+         }
+      }
 }
+
 function buildCamera () {
   const mm = 75 // lens
   const width = window.innerWidth
@@ -137,8 +147,6 @@ function buildRenderer () {
   const renderer = new THREE.WebGLRenderer({ canvas: canvas1, preserveDrawingBuffer: true,  antialiasing:true})
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.shadowMap.enabled = true;
-
-
   return renderer
 };
 
@@ -162,10 +170,9 @@ function main () {
 
   const cam = buildCamera()
   const renderer = buildRenderer()
-  renderer.shadowMap.enabled = true;
   const scene = init(sceneObjects, renderer);
   const character = scene.getObjectByName("testcube", true);
-  const pressed = characterController(character);
+  const characterController = new Controller(character);
 
   const composer = buildComposer(renderer, scene, cam);
   const controls = new THREE.OrbitControls( cam, renderer.domElement );
@@ -174,12 +181,7 @@ function main () {
   const animate = function () {
       requestAnimationFrame(animate)
       composer.render(scene, cam)
-      for (const [key, value] of Object.entries(pressed)) {
-        if (value === true) {
-          console.log(key, value);
-          move(key, character)
-        }
-      }
+      characterController.update();
   };
   animate()
 

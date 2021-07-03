@@ -6,17 +6,29 @@
   font-family: dialogFont;
   src: url("fonts/PixelEmulator-xq08.ttf");
 }
-
-#titleText {
-  width: 600px;
-  margin:5%;
+#titleBOX {
+  width: 700px;
+  height: 200px;
+  margin-top:-5%;
+  margin-left:5%;
   opacity: 90%;
   position:absolute;
+}
+#titleText {
   font-family: titleFont;
   font-size: 120px;
   text-shadow: 1px 1px 15px white;
   letter-spacing: 8px;
   text-decoration: underline;
+}
+#subTitle {
+  margin-top:-18%;
+  font-family: titleFont;
+  font-size: 20px;
+  text-shadow: 1px 1px 15px white;
+  margin-right:6%;
+  float: right;
+  font-weight: 900;
 }
 
 #dialogBox {
