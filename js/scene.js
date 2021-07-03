@@ -1,4 +1,5 @@
 
+
 function dialog(txt) {
   var i = 0;
   var speed = 50; /* The speed/duration of the effect in milliseconds */
@@ -20,7 +21,7 @@ function loadMeshes () {
 function getGLTFObjects(scene) {
   const loader = new THREE.GLTFLoader();
   let loadedObjects = [];
-  let myObjects = ['models/villager.glb', 'models/platform.glb', 'models/stump.glb', 'models/tree.glb'];
+  let myObjects = ['models/villager.glb', 'models/platform.glb'];
   for (let i = 0; i < myObjects.length; i++) {
     loader.load( myObjects[i], function ( gltf ) {
       gltf.scene.traverse( function ( object ) {
@@ -87,11 +88,42 @@ function testCube () {
   const geometry = new THREE.BoxGeometry(2, 2, 2, 4, 4, 4)
   const material = new THREE.MeshBasicMaterial({ color: 0xfffff, wireframe: true })
   const cube = new THREE.Mesh(geometry, material)
-  cube.scale.set(2, 2, 2)
-  cube.name = 'testcube'
-
+  cube.scale.set(2, 2, 2);
+  cube.position.set(0, 0, 0);
+  cube.name = 'testcube';
   return cube
 };
+function characterController(character) {
+
+  let keysPressed = {};
+
+  document.addEventListener('keydown', (event) => {
+   keysPressed[event.key] = true;
+  });
+  document.addEventListener('keyup', (event) => {
+    keysPressed[event.key] = false;
+  });
+  return keysPressed;
+};
+
+function move(key, character){
+  var moveSpeed = 0.24;
+  if (key == 'w') {
+           character.translateZ( moveSpeed );
+       }
+      if (key == 's') {
+           character.translateZ( -moveSpeed);
+       }
+       if (key == 'a') {
+           character.rotation.y += moveSpeed;
+       }
+       if (key == 'd') {
+           character.rotation.y -= moveSpeed;
+       }
+       if (key == 32) {
+           character.position.set(0, 0, 0);
+       }
+}
 function buildCamera () {
   const mm = 75 // lens
   const width = window.innerWidth
@@ -132,6 +164,8 @@ function main () {
   const renderer = buildRenderer()
   renderer.shadowMap.enabled = true;
   const scene = init(sceneObjects, renderer);
+  const character = scene.getObjectByName("testcube", true);
+  const pressed = characterController(character);
 
   const composer = buildComposer(renderer, scene, cam);
   const controls = new THREE.OrbitControls( cam, renderer.domElement );
@@ -139,8 +173,13 @@ function main () {
   dialog('Hello and welcome to my CV!')
   const animate = function () {
       requestAnimationFrame(animate)
-      //console.log(cam.rotation);
       composer.render(scene, cam)
+      for (const [key, value] of Object.entries(pressed)) {
+        if (value === true) {
+          console.log(key, value);
+          move(key, character)
+        }
+      }
   };
   animate()
 
