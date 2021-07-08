@@ -12,15 +12,25 @@ function dialog(txt) {
   }
   typeWriter()
 }
-
 function loadMeshes () {
   const meshes = [testCube()];
   console.log(meshes)
   return meshes
 };
+function testCube () {
+  // delete, just for testing
+  const geometry = new THREE.BoxGeometry(2, 2, 2, 4, 4, 4)
+  const material = new THREE.MeshBasicMaterial({ color: 0xfffff, wireframe: true })
+  const cube = new THREE.Mesh(geometry, material)
+  cube.scale.set(2, 2, 2);
+  cube.position.set(0, 4, 0);
+  cube.name = 'testcube';
+  return cube
+};
 function getGLTFObjects(scene) {
   const loader = new THREE.GLTFLoader();
   let loadedObjects = [];
+  //let myObjects = ['models/villager.glb', 'models/platform.glb', 'models/stump.glb', 'models/tree.glb'];
   let myObjects = ['models/villager.glb', 'models/platform.glb'];
   for (let i = 0; i < myObjects.length; i++) {
     loader.load( myObjects[i], function ( gltf ) {
@@ -36,7 +46,6 @@ function getGLTFObjects(scene) {
     	console.error( error );
     } );
   }
-
   return loadedObjects;
 }
 function loadLights () {
@@ -68,6 +77,7 @@ function loadLights () {
 function init (objects, renderer) {
   // Scene setup
   const scene = new THREE.Scene()
+  scene.fog = new THREE.FogExp2("#A4FFED" , 0.002);
   //Load background texture
   const texloader = new THREE.TextureLoader();
   texloader.load('models/background.jpg' , function(texture)
@@ -82,16 +92,6 @@ function init (objects, renderer) {
   }
   getGLTFObjects(scene)
   return scene
-};
-function testCube () {
-  // delete, just for testing
-  const geometry = new THREE.BoxGeometry(2, 2, 2, 4, 4, 4)
-  const material = new THREE.MeshBasicMaterial({ color: 0xfffff, wireframe: true })
-  const cube = new THREE.Mesh(geometry, material)
-  cube.scale.set(2, 2, 2);
-  cube.position.set(0, 0, 0);
-  cube.name = 'testcube';
-  return cube
 };
 
 class Controller {
@@ -110,7 +110,6 @@ class Controller {
   update () {
     for (const [key, value] of Object.entries(this.keysPressed)) {
       if (value === true) {
-        console.log(key, value);
         this.move(key)
       }
     }
@@ -139,7 +138,7 @@ function buildCamera () {
   const width = window.innerWidth
   const height = window.innerHeight
   const camera = new THREE.PerspectiveCamera(mm, width / height, 0.1, 1000)
-  camera.position.set(0.7266766457148011, 2.234444172194488, 24.567981456895367)
+  camera.position.set(0.7266766457148011, 4.234444172194488, 24.567981456895367)
   return camera
 };
 function buildRenderer () {
@@ -153,9 +152,9 @@ function buildRenderer () {
 function buildComposer(renderer, scene, cam) {
   const composer = new POSTPROCESSING.EffectComposer( renderer );
   const renderPass = new POSTPROCESSING.RenderPass( scene, cam);
-  let vignette = new POSTPROCESSING.VignetteEffect();
   let bloom = new POSTPROCESSING.BloomEffect({"intensity":2});
   let dof = new POSTPROCESSING.DepthOfFieldEffect(cam, {focusDistance: 0.02, focalLength: 0.058, bokehScale: 3.0});
+  let vignette = new POSTPROCESSING.VignetteEffect();
 
   const effectPass = new POSTPROCESSING.EffectPass(cam, dof, bloom, vignette,);
   effectPass.renderToScreen = true;
@@ -167,17 +166,25 @@ function buildComposer(renderer, scene, cam) {
 function main () {
 
   const sceneObjects = [].concat(loadMeshes(), loadLights())
-
   const cam = buildCamera()
   const renderer = buildRenderer()
   const scene = init(sceneObjects, renderer);
-  const character = scene.getObjectByName("testcube", true);
-  const characterController = new Controller(character);
+  let testCube = scene.getObjectByName("testcube", true);
+  testCube.attach(cam);
+  //cam.lookAt(testCube);
+
+  const character =  scene.getObjectByName("n011", true);
+  console.log('here');
+  console.log(scene.children);
+  console.log(character);
+  //testCube.attach(character);
+  const characterController = new Controller(testCube);
 
   const composer = buildComposer(renderer, scene, cam);
-  const controls = new THREE.OrbitControls( cam, renderer.domElement );
+  //const controls = new THREE.OrbitControls( cam, renderer.domElement );
 
   dialog('Hello and welcome to my CV!')
+
   const animate = function () {
       requestAnimationFrame(animate)
       composer.render(scene, cam)
